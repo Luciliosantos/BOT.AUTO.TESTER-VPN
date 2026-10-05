@@ -1,0 +1,64 @@
+{
+    "Version": 0,
+    "PainelConecta5G": "false",
+    "ReleaseNotes": "BEM-VINDO AO PAINEL CONECTA 5G!",
+    "UrlUpdate": "https://gist.github.com/Luciliosantos/c99febe4f6318262cc448a6f3693281d/raw/Confi.json",
+    "Sms": "",
+    "logoonline": "",
+    "fundoonline": "",
+    "banneRodapeOnline": "",
+    "fundoDoLogOnline": "",
+    "EmailFeedback": "",
+    "UrlContato": "",
+    "UrlTermos": "",
+    "CheckUser": "false",
+    "ModderLinkWhatsapp": "",
+    "ModderLinkTelegram": "",
+    "ModderCorCaixaServ": false,
+    "ModderCorCaixaPay": false,
+    "ModderCorCaixaCentral": false,
+    "ModderCorCaixaConexao": "#2563eb",
+    "ModderCorCaixaRegistro": false,
+    "ModderCorCaixaFerramentas": false,
+    "ModderCorCaixaUsuario": false,
+    "ModderCorCaixaSenha": false,
+    "ModderCorBotaoIniciar": false,
+    "ModderCorBotaoLog": false,
+    "ModderCorBotaoConfig": false,
+    "DnsPrimario": "8.8.8.8",
+    "DnsSecundario": "8.4.4.8",
+    "Udp": [
+        {
+            "Porta": "7300"
+        }
+    ],
+    "Servers": [
+        
+         {
+            "Name": "NOVA ATUALIZAÇÃO DISPONÍVEL",
+            "TYPE": "free",
+            "FLAG": "br.png",
+            "ServerIP": "",
+            "CheckUser": "http://",
+            "ServerPort": "22",
+            "SSLPort": "443",
+            "USER": "",
+            "PASS": ""
+        }
+    ],
+    "Networks": [
+          {
+            "Name": "--------------------FIM--------------------",
+            "FLAG": "",
+            "Payload": "",
+            "SNI": "",
+            "TlsIP": "",
+            "ProxyIP": "",
+            "ProxyPort": "",
+            "SlowChave": "",
+            "SlowNameServer": "",
+            "SlowDns": "",
+            "Info": ""
+        }
+    ]
+}
