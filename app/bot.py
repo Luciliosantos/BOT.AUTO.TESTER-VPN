@@ -18,26 +18,60 @@ SESSIONS={}; RUNNING={}
 def allowed(uid): return uid in ADMINS
 
 def parse_targets(text):
-    ips=[]; snis=[]; section=None
+    import ipaddress
+
+    ips = []
+    snis = []
+    section = None
+
     for raw in text.splitlines():
-        line=raw.strip()
-        if not line: continue
-        head=line.upper().rstrip(':')
-        if head in ('IP','IPS','IP/PROXY','PROXY','PROXIES'):
-            section='ip'; continue
-        if head in ('SNI','SNIS','DOMINIO','DOMINIOS','DOMAINS'):
-            section='sni'; continue
-        line=re.sub(r'^[•\-*\d\.)\s]+','',line).strip()
-        if not line: continue
-        host=line.split('://',1)[-1].split('/',1)[0]
-        if host.count(':')==1: host=host.rsplit(':',1)[0]
-        import ipaddress
+        line = raw.strip()
+        if not line:
+            continue
+
+        head = line.upper().rstrip(":")
+
+        if head in ("IP", "IPS", "IP/PROXY", "PROXY", "PROXIES"):
+            section = "ip"
+            continue
+
+        if head in ("SNI", "SNIS", "DOMINIO", "DOMINIOS", "DOMAINS"):
+            section = "sni"
+            continue
+
+        # Remove marcadores de lista, mas NÃO remove números de IPs.
+        line = re.sub(r"^[•\-*]+\s*", "", line).strip()
+        line = re.sub(r"^\d+[.)]\s+", "", line).strip()
+
+        if not line:
+            continue
+
+        host = line.split("://", 1)[-1].split("/", 1)[0].strip()
+
+        # Remove porta somente quando houver host:porta.
+        if host.count(":") == 1:
+            host, port = host.rsplit(":", 1)
+            if port.isdigit():
+                host = host.strip()
+
         try:
-            ipaddress.ip_address(host); ips.append(host); continue
-        except ValueError: pass
-        if section=='ip': ips.append(host)
-        elif section=='sni' or re.match(r'^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$',host): snis.append(host)
-    return [Target('ip',x) for x in dict.fromkeys(ips)] + [Target('sni',x) for x in dict.fromkeys(snis)]
+            ipaddress.ip_address(host)
+            ips.append(host)
+            continue
+        except ValueError:
+            pass
+
+        if section == "ip":
+            ips.append(host)
+        elif section == "sni" or re.match(
+            r"^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", host
+        ):
+            snis.append(host)
+
+    return (
+        [Target("ip", x) for x in dict.fromkeys(ips)]
+        + [Target("sni", x) for x in dict.fromkeys(snis)]
+    )
 
 async def start(update:Update, context:ContextTypes.DEFAULT_TYPE):
     if not allowed(update.effective_user.id): return
@@ -85,12 +119,23 @@ async def test(update, context):
     except Exception as e: await update.message.reply_text(f'❌ {e}'); return
     targets=SESSIONS.get(uid,[])
     if not targets: await update.message.reply_text('Envie primeiro os IPs/domínios.'); return
+    try:
+        limit = int(context.args[0]) if context.args else None
+        if limit is not None and limit < 1:
+            raise ValueError
+    except (ValueError, TypeError):
+        await update.message.reply_text('Use: /test ou /test 1, /test 5, /test 10...')
+        return
+
     total=len(targets)*len(cfg['Servers'])*len(cfg['Networks'])
+    if limit is not None:
+        total = min(total, limit)
+
     await update.message.reply_text(f'🚀 Iniciando {total} testes...')
     async def on_result(r):
         if r.status=='ok':
             await update.message.reply_text(f'✅ {r.kind.upper()} FUNCIONOU\n{r.target}\nConfig: {r.network} | {r.elapsed_ms} ms')
-    task=asyncio.create_task(run_batch(cfg,targets,TIMEOUT,CONCURRENCY,on_result)); RUNNING[uid]=task
+    task=asyncio.create_task(run_batch(cfg,targets,TIMEOUT,CONCURRENCY,on_result,limit=limit)); RUNNING[uid]=task
     try:
         results=await task
         out=[r.to_dict() for r in results]

@@ -65,15 +65,19 @@ def socket_timeout_error():
     return socket.timeout
 
 
-async def run_batch(cfg, targets, timeout=12, concurrency=10, on_result=None):
+async def run_batch(cfg, targets, timeout=12, concurrency=10, on_result=None, limit=None):
     sem = asyncio.Semaphore(concurrency)
     results=[]
     async def task(network, server, target):
         async with sem:
-            r = await asyncio.to_thread(one, network, server, target, timeout)
+            r = await asyncio.get_running_loop().run_in_executor(None, one, network, server, target, timeout)
             results.append(r)
             if on_result:
                 await on_result(r)
-    jobs=[task(n,s,t) for s in cfg['Networks'] for s in cfg['Servers'] for t in targets]
+    jobs=[task(network,server,t) for network in cfg['Networks'] for server in cfg['Servers'] for t in targets]
+
+    if limit is not None:
+        jobs = jobs[:limit]
+
     await asyncio.gather(*jobs)
     return results
