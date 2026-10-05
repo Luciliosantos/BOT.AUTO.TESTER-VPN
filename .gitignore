@@ -6,3 +6,4 @@ __pycache__/
 data/config.json
 data/credentials.json
 results/
+bot.log
